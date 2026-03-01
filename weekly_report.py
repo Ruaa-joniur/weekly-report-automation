@@ -1,31 +1,38 @@
-import matplotlib.pyplot as plt
-import pandas as pd
+import openpyxl
+from openpyxl.chart import BarChart, Reference
 
-# Sample data from Excel cells A3, B3, A4, B4
-labels = ['Label 1', 'Label 2']
-values = [
-    pd.read_excel('file.xlsx', sheet_name='Sheet1', usecols='A', skiprows=2).iloc[0, 0],  # A3
-    pd.read_excel('file.xlsx', sheet_name='Sheet1', usecols='B', skiprows=2).iloc[0, 0]   # B3
-]
+# Load the workbook and select the active worksheet
+workbook = openpyxl.load_workbook('weekly_report.xlsx')
+worksheet = workbook.active
 
-# Create a new figure for the plot
-fig, ax = plt.subplots()
+# Create a 2-D Clustered Bar Chart
+chart = BarChart()
+chart.type = 'col'
+chart.style = 1
+chart.title = 'Weekly Report Chart'
+chart.y_axis.title = 'Values'
+chart.x_axis.title = 'Categories'
 
-# Create a clustered bar chart
-bars = ax.bar(labels, values, color=['#FF5733', '#33FF57'], edgecolor='black')  # Different colors
+# Define data for the chart
+data = Reference(worksheet, min_col=1, min_row=3, max_col=2, max_row=4)
+chart.add_data(data, titles_from_data=True)
 
-# Add data labels
-for bar in bars:
-    yval = bar.get_height()
-    ax.text(bar.get_x() + bar.get_width()/2, yval, round(yval, 2), ha='center', va='bottom')
+# Set the colors for the columns
+chart.series[0].graphicalProperties.solidFill = "FF0000FF"  # Blue
+chart.series[1].graphicalProperties.solidFill = "FFFFA500"  # Orange
 
 # Customize the chart
-ax.set_title('Chart 1 Title')  # Title
-ax.grid(False)  # No major gridlines
-ax.set_ylim(0, max(values) * 1.1)  # Give some space above the bars
+chart.height = 10  # Set height of the chart
+chart.width = 20   # Set width of the chart
+chart.style = 2    # Use a specified style
+chart.showgridlines = False  # No gridlines
+chart.datalabels.showVal = True  # Show values only
 
-# Adjust plot area
-plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)  # Smaller plot area for visible title
+# Add the chart to the sheet
+worksheet.add_chart(chart, 'D5')
 
-# Display the plot
-plt.show()
+# Save the workbook
+workbook.save('weekly_report.xlsx')
+
+# Close the workbook
+workbook.close()
